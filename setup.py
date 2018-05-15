@@ -85,6 +85,11 @@ setup(
             "upload = twine.commands.upload:main",
             "register = twine.commands.register:main",
         ],
+        "twine.credentials": [
+            "default = twine.credential_managers.default:DefaultCredentialManager",
+            "user = twine.credential_managers.user:UserInputCredentialManager",
+            "keychain = twine.credential_managers.keyring:KeyringCredentialManager"
+        ],
         "console_scripts": [
             "twine = twine.__main__:main",
         ],
