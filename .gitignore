@@ -21,3 +21,6 @@ pip-log.txt
 .coverage
 .tox
 .cache
+
+# PyEnv
+.python-version
