@@ -19,6 +19,7 @@ import glob
 import os.path
 import sys
 
+from twine.credential_managers import load_credential_manager
 import twine.exceptions as exc
 from twine.package import PackageFile
 from twine.repository import Repository, LEGACY_PYPI, LEGACY_TEST_PYPI
@@ -73,10 +74,12 @@ def skip_upload(response, skip_existing, package):
 
 def upload(dists, repository, sign, identity, username, password, comment,
            sign_with, config_file, skip_existing, cert, client_cert,
-           repository_url, verbose):
+           repository_url, verbose, credential_manager_name, interactive):
     # Check that a nonsensical option wasn't given
     if not sign and identity:
         raise ValueError("sign must be given along with identity")
+
+    credential_manager = load_credential_manager(credential_manager_name)
 
     dists = find_dists(dists)
 
@@ -113,12 +116,33 @@ def upload(dists, repository, sign, identity, username, password, comment,
                 )
             )
 
-    username = utils.get_username(username, config)
-    password = utils.get_password(
-        config["repository"], username, password, config,
+    username = credential_manager.get_username(
+        system=config["repository"],
+        cli_value=username,
+        config=config,
+        interactive=interactive
     )
-    ca_cert = utils.get_cacert(cert, config)
-    client_cert = utils.get_clientcert(client_cert, config)
+    password = credential_manager.get_password(
+        system=config["repository"],
+        username=username,
+        cli_value=password,
+        config=config,
+        interactive=interactive
+    )
+    ca_cert = credential_manager.get_cacert(
+        system=config["repository"],
+        username=username,
+        cli_value=cert,
+        config=config,
+        interactive=interactive
+    )
+    client_cert = credential_manager.get_clientcert(
+        system=config["repository"],
+        username=username,
+        cli_value=client_cert,
+        config=config,
+        interactive=interactive
+    )
 
     repository = Repository(config["repository"], username, password)
     repository.set_certificate_authority(ca_cert)
@@ -204,6 +228,19 @@ def main(args):
         help="GPG identity used to sign files.",
     )
     parser.add_argument(
+        "--credential-manager",
+        dest="credential_manager_name",
+        default="default",
+        required=False,
+        help="The name of a registered credential manager to use. (optional)"
+    )
+    parser.add_argument(
+        "--non-interactive",
+        dest="interactive",
+        action="store_false",
+        required=False
+    )
+    parser.add_argument(
         "-u", "--username",
         action=utils.EnvironmentDefault,
         env="TWINE_USERNAME",
@@ -274,4 +311,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(None))

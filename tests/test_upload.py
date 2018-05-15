@@ -84,6 +84,7 @@ def test_get_config_old_format(tmpdir):
                       cert=None, client_cert=None,
                       sign_with=None, config_file=pypirc, skip_existing=False,
                       repository_url=None, verbose=None,
+                      credential_manager_name="default", interactive=True,
                       )
     except KeyError as err:
         assert err.args[0] == (
@@ -113,6 +114,7 @@ def test_deprecated_repo(tmpdir):
                       cert=None, client_cert=None,
                       sign_with=None, config_file=pypirc, skip_existing=False,
                       repository_url=None, verbose=None,
+                      credential_manager_name="default", interactive=True,
                       )
 
         assert err.args[0] == (
